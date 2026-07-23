@@ -13,6 +13,7 @@ var _folder_icon: Texture2D
 var _model_icon: Texture2D
 var _baker: ThumbnailBaker
 var _index_by_path := {}          # chemin -> index de l'item (miniatures)
+var entry_count := 0              # nb de dossiers + modèles affichés (hors placeholder « vide »)
 
 
 func _ready() -> void:
@@ -62,6 +63,8 @@ func populate(path: String) -> void:
 		_index_by_path[full] = idx
 		_baker.request(full)          # miniature 3D (async, remplace l'icône)
 
+	# À ce stade item_count = dossiers + modèles (le placeholder n'est pas encore ajouté).
+	entry_count = item_count
 	if item_count == 0:
 		var idx := add_item("(Aucun dossier ni modèle 3D ici)")
 		set_item_disabled(idx, true)

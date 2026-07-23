@@ -12,6 +12,7 @@ var _fwd_btn: Button
 var _up_btn: Button
 var _file_dialog: FileDialog
 var _status_label: Label
+var _count_label: Label
 
 var _current := ""
 var _history: Array[String] = []
@@ -104,7 +105,7 @@ func _build_ui() -> void:
 	_preview = ModelPreview.new()
 	hsplit2.add_child(_preview)
 
-	# --- Barre de statut (bas) : contexte à gauche, version de l'app à droite ---
+	# --- Barre de statut (bas) : chemin | nombre d'éléments | version ---
 	vbox.add_child(HSeparator.new())
 
 	var statusbar := HBoxContainer.new()
@@ -116,6 +117,16 @@ func _build_ui() -> void:
 	_status_label.clip_text = true
 	_status_label.text = "Prêt"
 	statusbar.add_child(_status_label)
+
+	statusbar.add_child(VSeparator.new())
+
+	_count_label = Label.new()
+	_count_label.custom_minimum_size = Vector2(120, 0)
+	_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_count_label.tooltip_text = "Nombre de dossiers et modèles dans le dossier courant"
+	statusbar.add_child(_count_label)
+
+	statusbar.add_child(VSeparator.new())
 
 	var version_label := Label.new()
 	version_label.text = "v" + AppVersion.VERSION
@@ -164,6 +175,7 @@ func navigate_to(path: String, record := true) -> void:
 	_grid.populate(path)
 	_path_edit.text = path
 	_status_label.text = path
+	_count_label.text = _format_count(_grid.entry_count)
 
 	if record:
 		if _hist_index < _history.size() - 1:
@@ -197,6 +209,14 @@ func _update_nav_buttons() -> void:
 	_fwd_btn.disabled = _hist_index >= _history.size() - 1
 	var parent := _current.get_base_dir()
 	_up_btn.disabled = parent == "" or parent == _current
+
+
+func _format_count(n: int) -> String:
+	if n == 0:
+		return "Aucun élément"
+	if n == 1:
+		return "1 élément"
+	return "%d éléments" % n
 
 
 # --- Signaux -----------------------------------------------------------------
