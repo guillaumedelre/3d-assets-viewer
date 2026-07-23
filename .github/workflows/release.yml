@@ -15,6 +15,12 @@ on:
   push:
     branches: [ main ]
 
+# Sérialise les runs de release : on ne coupe JAMAIS une release/build en cours (cancel-in-progress
+# false) pour ne pas laisser un tag créé sans ses .zip attachés.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 permissions:
   contents: write        # créer le tag et la release
   pull-requests: write   # ouvrir/mettre à jour la Release PR

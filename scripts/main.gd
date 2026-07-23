@@ -11,6 +11,7 @@ var _back_btn: Button
 var _fwd_btn: Button
 var _up_btn: Button
 var _file_dialog: FileDialog
+var _status_label: Label
 
 var _current := ""
 var _history: Array[String] = []
@@ -103,6 +104,25 @@ func _build_ui() -> void:
 	_preview = ModelPreview.new()
 	hsplit2.add_child(_preview)
 
+	# --- Barre de statut (bas) : contexte à gauche, version de l'app à droite ---
+	vbox.add_child(HSeparator.new())
+
+	var statusbar := HBoxContainer.new()
+	statusbar.add_theme_constant_override("separation", 8)
+	vbox.add_child(statusbar)
+
+	_status_label = Label.new()
+	_status_label.size_flags_horizontal = SIZE_EXPAND_FILL
+	_status_label.clip_text = true
+	_status_label.text = "Prêt"
+	statusbar.add_child(_status_label)
+
+	var version_label := Label.new()
+	version_label.text = "v" + AppVersion.VERSION
+	version_label.tooltip_text = "Version de l'application"
+	version_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	statusbar.add_child(version_label)
+
 	# --- Sélecteur de dossier natif ---
 	_file_dialog = FileDialog.new()
 	_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_DIR
@@ -143,6 +163,7 @@ func navigate_to(path: String, record := true) -> void:
 	_current = path
 	_grid.populate(path)
 	_path_edit.text = path
+	_status_label.text = path
 
 	if record:
 		if _hist_index < _history.size() - 1:
@@ -186,6 +207,7 @@ func _on_tree_folder_selected(path: String) -> void:
 
 func _on_file_selected(path: String) -> void:
 	_preview.show_model(path)
+	_status_label.text = path
 
 
 func _on_path_submitted(text: String) -> void:

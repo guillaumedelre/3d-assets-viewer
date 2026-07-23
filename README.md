@@ -72,11 +72,29 @@ Flux ([`.github/workflows/release.yml`](.github/workflows/release.yml)) :
 > **Première version.** Le dépôt démarre à `0.0.0` : le premier `feat:` publiera `0.1.0`. Pour
 > sortir directement en `1.0.0`, ajoute un footer `Release-As: 1.0.0` à un commit.
 
+Le numéro de version est aussi injecté dans [`scripts/version.gd`](scripts/version.gd) (`AppVersion.VERSION`)
+par release-please, et **affiché en bas de l'application dans la barre de statut** — aucune saisie manuelle.
+
 **Prérequis (une seule fois)** : *Settings → Actions → General →* activer **« Allow GitHub Actions to
 create and approve pull requests »** (sinon release-please ne peut pas ouvrir la Release PR).
 
 Pour un build de test sans publier : onglet **Actions → build → Run workflow** (produit seulement les
 artifacts).
+
+### Durcissement recommandé (optionnel)
+
+Empêcher de fusionner une Release PR (ou toute PR) dont les tests échouent — à lancer une fois que le
+check **GdUnit4** a tourné au moins une fois sur une PR :
+
+```bash
+gh api -X PUT repos/guillaumedelre/3d-assets-viewer/branches/main/protection \
+  -H "Accept: application/vnd.github+json" \
+  -f 'required_status_checks[strict]=true' \
+  -f 'required_status_checks[checks][][context]=GdUnit4' \
+  -f 'enforce_admins=false' \
+  -F 'required_pull_request_reviews=null' \
+  -F 'restrictions=null'
+```
 
 ## 🛠️ Prérequis
 
