@@ -4,12 +4,16 @@ name: release
 #
 # À chaque push sur `main`, release-please tient à jour une "Release PR" qui calcule le prochain
 # numéro de version (fix -> patch, feat -> minor, feat!/BREAKING CHANGE -> major) et le CHANGELOG.
-# Quand tu FUSIONNES cette Release PR, release-please crée le tag vX.Y.Z + la GitHub Release, puis
-# appelle build.yml (workflow réutilisable) qui exporte les 3 plateformes et attache les .zip.
+# La Release PR s'AUTO-FUSIONNE (squash) dès que le check GdUnit4 est vert : cela crée le tag vX.Y.Z
+# + la GitHub Release, puis appelle build.yml (réutilisable) qui exporte les 3 plateformes et attache
+# les .zip. Publication 100 % automatique.
 #
 # Prérequis côté dépôt (une seule fois) :
-#   Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests" = ON
-#   (sans quoi release-please ne peut pas ouvrir la Release PR).
+#   - Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests" = ON.
+#   - Settings -> General -> "Allow auto-merge" = ON.
+#   - Secret RELEASE_PLEASE_TOKEN : un PAT fine-grained (ce dépôt) avec Contents=R/W et Pull requests=R/W.
+#     INDISPENSABLE : le GITHUB_TOKEN ne re-déclenche jamais un workflow, donc un merge fait avec lui
+#     ne créerait ni tag ni Release ni build. Le PAT fait que l'auto-merge re-déclenche ce workflow.
 
 on:
   push:
@@ -35,8 +39,19 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: rp
         with:
+          # PAT (et non GITHUB_TOKEN) pour que l'auto-merge de la Release PR RE-déclenche ce workflow.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # Active l'auto-merge (squash) sur la Release PR : elle se fusionne d'elle-même dès que GdUnit4
+      # passe au vert, ce qui publie automatiquement la nouvelle version. Ne fait rien s'il n'y a pas
+      # de Release PR ouverte (aucun commit releasable).
+      - name: Auto-merge de la Release PR
+        if: ${{ steps.rp.outputs.pr }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: gh pr merge --auto --squash "${{ fromJson(steps.rp.outputs.pr).number }}" -R "${{ github.repository }}"
 
   # Appelé UNIQUEMENT quand la Release PR vient d'être fusionnée (une nouvelle version est publiée).
   build:
