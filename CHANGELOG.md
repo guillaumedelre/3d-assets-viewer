@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.3...v1.0.4) (2026-07-23)
+
+
+### 🐛 Corrections de bugs
+
+* **export:** icône de l'app dans l'exe Windows ([#7](https://github.com/guillaumedelre/3d-assets-viewer/issues/7)) ([504e19d](https://github.com/guillaumedelre/3d-assets-viewer/commit/504e19dc572663189cd6371ec7ecbb097ff9c4fc))
+
 ## [1.0.3](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.2...v1.0.3) (2026-07-23)
 
 
