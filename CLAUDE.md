@@ -43,15 +43,25 @@ grille + aperçu 3D orbital. Toute l'UI est construite **par code** (pas de gros
   et se construit sur un runner **macOS natif** (le cross-export depuis Linux est instable).
 - **UI par code** : pour modifier l'interface, éditer `_build_ui()` dans `main.gd`, pas un `.tscn`.
 
-## Commits & releases (IMPORTANT)
+## Workflow de contribution (IMPORTANT)
 
-Dépôt en **Conventional Commits**. La version SemVer, le tag `vX.Y.Z`, le `CHANGELOG.md` et la
-GitHub Release (avec les `.zip` Linux/Windows/macOS) sont produits **automatiquement** par
-`release-please` (`.github/workflows/release.yml`) — **ne jamais choisir de version ni poser de tag à la main**.
+`main` est **protégée** : interdiction de pousser directement dessus. Tout changement passe par une PR.
 
-Flux : push sur `main` → release-please tient à jour une « Release PR » → quand elle est fusionnée →
-tag + Release + build des 3 plateformes. Ici, **tout type de commit** (feat, fix, perf, refactor, docs,
-test, build, ci…) déclenche une release ; seuls `chore` et `style` sont silencieux.
+1. Créer une branche : `git switch -c feat/ma-fonctionnalite` (préfixe libre : `feat/`, `fix/`, `chore/`…).
+2. Committer sur la branche (messages WIP tolérés — ce ne sont pas eux qui pilotent la version).
+3. Ouvrir une PR vers `main`. Le check **GdUnit4** doit être au vert : c'est **requis** pour fusionner.
+4. **Squash-merge** avec un **titre de PR au format Conventional Commits** (`feat: …`, `fix: …`) : ce titre
+   devient l'unique commit sur `main` et **pilote la version**. La branche est supprimée automatiquement.
 
-Rédige chaque commit selon la règle complète :
+Le dépôt n'autorise que le **squash merge** (historique linéaire) : une PR = un commit conventionnel sur `main`.
+
+## Versioning & releases (automatique)
+
+Conventional Commits → SemVer via **release-please** (`.github/workflows/release.yml`), jamais à la main.
+Après un merge sur `main`, release-please tient à jour une « Release PR » (version + `CHANGELOG.md`) ;
+la fusionner crée le tag `vX.Y.Z`, la GitHub Release et les `.zip` Linux/Windows/macOS.
+Ici **tout type de commit** (feat, fix, perf, refactor, docs, test, build, ci…) déclenche une release ;
+seuls `chore` et `style` sont silencieux.
+
+Règle de rédaction complète des commits / titres de PR :
 @.claude/rules/conventional-commits.md
