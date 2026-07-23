@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.1](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.0...v1.0.1) (2026-07-23)
+
+
+### 🐛 Corrections de bugs
+
+* **export:** definit le bundle identifier macOS (export casse) ([b045824](https://github.com/guillaumedelre/3d-assets-viewer/commit/b0458240e0815b07c712cae4f2a3888c177789b5))
+
+
+### 🤖 Intégration continue
+
+* tags de release sans prefixe de composant (v1.0.0 au lieu de 3d-assets-viewer-v1.0.0) ([d912d4f](https://github.com/guillaumedelre/3d-assets-viewer/commit/d912d4f974cfe0294e7eba32457711c6241bf78c))
+
 ## 1.0.0 (2026-07-23)
 
 
