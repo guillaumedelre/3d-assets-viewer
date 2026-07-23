@@ -58,8 +58,9 @@ Le dépôt n'autorise que le **squash merge** (historique linéaire) : une PR = 
 ## Versioning & releases (automatique)
 
 Conventional Commits → SemVer via **release-please** (`.github/workflows/release.yml`), jamais à la main.
-Après un merge sur `main`, release-please tient à jour une « Release PR » (version + `CHANGELOG.md`) ;
-la fusionner crée le tag `vX.Y.Z`, la GitHub Release et les `.zip` Linux/Windows/macOS.
+Après un merge sur `main`, release-please tient à jour une « Release PR » (version + `CHANGELOG.md`) qui
+**s'auto-fusionne** dès que le check GdUnit4 est vert → tag `vX.Y.Z` + GitHub Release + `.zip`
+Linux/Windows/macOS. Publication automatique (repose sur le secret `ASSETS_3D_VIEWER_RELEASE_PLEASE_TOKEN`, cf. `release.yml`).
 Ici **tout type de commit** (feat, fix, perf, refactor, docs, test, build, ci…) déclenche une release ;
 seuls `chore` et `style` sont silencieux.
 
