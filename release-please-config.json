@@ -8,6 +8,19 @@
       "include-v-in-tag": true,
       "draft": false,
       "prerelease": false,
+      "changelog-sections": [
+        { "type": "feat", "section": "✨ Fonctionnalités" },
+        { "type": "fix", "section": "🐛 Corrections de bugs" },
+        { "type": "perf", "section": "⚡ Performances" },
+        { "type": "refactor", "section": "♻️ Refactorisation" },
+        { "type": "docs", "section": "📝 Documentation" },
+        { "type": "test", "section": "🧪 Tests" },
+        { "type": "build", "section": "📦 Build & export" },
+        { "type": "ci", "section": "🤖 Intégration continue" },
+        { "type": "revert", "section": "⏪ Retours arrière" },
+        { "type": "style", "section": "💄 Style", "hidden": true },
+        { "type": "chore", "section": "🔧 Divers", "hidden": true }
+      ],
       "extra-files": [
         { "type": "generic", "path": "scripts/version.gd" }
       ]
