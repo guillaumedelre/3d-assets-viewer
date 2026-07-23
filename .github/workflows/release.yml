@@ -11,7 +11,7 @@ name: release
 # Prérequis côté dépôt (une seule fois) :
 #   - Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests" = ON.
 #   - Settings -> General -> "Allow auto-merge" = ON.
-#   - Secret RELEASE_PLEASE_TOKEN : un PAT fine-grained (ce dépôt) avec Contents=R/W et Pull requests=R/W.
+#   - Secret ASSETS_VIEWER_RELEASE_PLEASE_TOKEN : un PAT fine-grained (ce dépôt) avec Contents=R/W et Pull requests=R/W.
 #     INDISPENSABLE : le GITHUB_TOKEN ne re-déclenche jamais un workflow, donc un merge fait avec lui
 #     ne créerait ni tag ni Release ni build. Le PAT fait que l'auto-merge re-déclenche ce workflow.
 
@@ -40,7 +40,7 @@ jobs:
         id: rp
         with:
           # PAT (et non GITHUB_TOKEN) pour que l'auto-merge de la Release PR RE-déclenche ce workflow.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ secrets.ASSETS_VIEWER_RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
@@ -50,7 +50,7 @@ jobs:
       - name: Auto-merge de la Release PR
         if: ${{ steps.rp.outputs.pr }}
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.ASSETS_VIEWER_RELEASE_PLEASE_TOKEN }}
         run: gh pr merge --auto --squash "${{ fromJson(steps.rp.outputs.pr).number }}" -R "${{ github.repository }}"
 
   # Appelé UNIQUEMENT quand la Release PR vient d'être fusionnée (une nouvelle version est publiée).
