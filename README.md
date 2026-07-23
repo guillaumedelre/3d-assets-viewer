@@ -81,20 +81,17 @@ create and approve pull requests »** (sinon release-please ne peut pas ouvrir l
 Pour un build de test sans publier : onglet **Actions → build → Run workflow** (produit seulement les
 artifacts).
 
-### Durcissement recommandé (optionnel)
+### Protection de `main`
 
-Empêcher de fusionner une Release PR (ou toute PR) dont les tests échouent — à lancer une fois que le
-check **GdUnit4** a tourné au moins une fois sur une PR :
+La branche `main` est protégée par un **ruleset** GitHub (`protect-main`), sans dérogation possible :
 
-```bash
-gh api -X PUT repos/guillaumedelre/3d-assets-viewer/branches/main/protection \
-  -H "Accept: application/vnd.github+json" \
-  -f 'required_status_checks[strict]=true' \
-  -f 'required_status_checks[checks][][context]=GdUnit4' \
-  -f 'enforce_admins=false' \
-  -F 'required_pull_request_reviews=null' \
-  -F 'restrictions=null'
-```
+- **PR obligatoire** — aucun push direct sur `main`.
+- Check **GdUnit4** requis au vert pour fusionner.
+- **Historique linéaire** : seul le *squash merge* est autorisé (une PR = un commit conventionnel).
+- Ni force-push ni suppression de `main`.
+
+Le déroulé pour contribuer (branche → PR → squash merge avec un titre au format Conventional Commits)
+est décrit dans [`CLAUDE.md`](CLAUDE.md).
 
 ## 🛠️ Prérequis
 
