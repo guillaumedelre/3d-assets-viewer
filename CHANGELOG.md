@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.4...v1.1.0) (2026-07-23)
+
+
+### ✨ Fonctionnalités
+
+* **ui:** refonte de l'interface (barre d'action, recherche, tri, vue Détails, arbre suivi, réseau) ([#9](https://github.com/guillaumedelre/3d-assets-viewer/issues/9)) ([687cbc6](https://github.com/guillaumedelre/3d-assets-viewer/commit/687cbc60368ef9337fa1e7811f9c0e703f76e886))
+
 ## [1.0.4](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.3...v1.0.4) (2026-07-23)
 
 
