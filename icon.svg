@@ -1,8 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#0f1720"/>
-  <g stroke="#0d47a1" stroke-width="3" stroke-linejoin="round">
-    <path d="M64 20 L104 44 L64 68 L24 44 Z" fill="#64b5f6"/>
-    <path d="M24 44 L64 68 L64 108 L24 84 Z" fill="#2196f3"/>
-    <path d="M104 44 L64 68 L64 108 L104 84 Z" fill="#1565c0"/>
+  <!-- Dossier de l'arborescence (icons/folder.svg), agrandi et centré -->
+  <g transform="translate(8 4.5) scale(1.75)">
+    <path d="M6 14 h16 l6 6 h30 a4 4 0 0 1 4 4 v28 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 V18 a4 4 0 0 1 4 -4 z" fill="#ffca28"/>
+    <path d="M2 27 h60 v23 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 z" fill="#ffb300"/>
+  </g>
+  <!-- Cube en fil de fer (wireframe) posé sur la couverture du dossier -->
+  <g fill="none" stroke="#0d47a1" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M47 64 H73 V90 H47 Z"/>
+    <path d="M56 55 H82 V81 H56 Z"/>
+    <path d="M47 64 L56 55 M73 64 L82 55 M73 90 L82 81 M47 90 L56 81"/>
   </g>
 </svg>
