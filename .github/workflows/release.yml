@@ -1,0 +1,43 @@
+name: release
+
+# Versioning automatique par Conventional Commits (release-please), sans jamais choisir la SemVer.
+#
+# À chaque push sur `main`, release-please tient à jour une "Release PR" qui calcule le prochain
+# numéro de version (fix -> patch, feat -> minor, feat!/BREAKING CHANGE -> major) et le CHANGELOG.
+# Quand tu FUSIONNES cette Release PR, release-please crée le tag vX.Y.Z + la GitHub Release, puis
+# appelle build.yml (workflow réutilisable) qui exporte les 3 plateformes et attache les .zip.
+#
+# Prérequis côté dépôt (une seule fois) :
+#   Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests" = ON
+#   (sans quoi release-please ne peut pas ouvrir la Release PR).
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write        # créer le tag et la release
+  pull-requests: write   # ouvrir/mettre à jour la Release PR
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # Appelé UNIQUEMENT quand la Release PR vient d'être fusionnée (une nouvelle version est publiée).
+  build:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build.yml
+    with:
+      release_tag: ${{ needs.release-please.outputs.tag_name }}

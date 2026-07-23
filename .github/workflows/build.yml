@@ -1,12 +1,22 @@
 name: build
 
 # Exporte l'application (Godot 4.7 headless) pour Linux / Windows (cross-export depuis Ubuntu)
-# et macOS (runner natif). Chaque plateforme est uploadée en artifact ; sur un tag v*, un GitHub
-# Release est créé avec les .zip. Lourd (~1 Go de templates) -> déclenché à la demande ou sur tag.
+# et macOS (runner natif). Chaque plateforme est uploadée en artifact.
+#
+# Ce workflow est RÉUTILISABLE (workflow_call) : il est appelé par release.yml après que
+# release-please a créé le tag vX.Y.Z. Quand `release_tag` est fourni, les .zip sont attachés
+# à la Release correspondante. Il peut aussi être lancé à la main (workflow_dispatch) pour
+# produire seulement les artifacts, sans publier de Release.
+# Lourd (~1 Go de templates).
 
 on:
-  push:
-    tags: [ 'v*' ]
+  workflow_call:
+    inputs:
+      release_tag:
+        description: "Si défini, attache les .zip produits à cette Release existante (ex. v1.2.3)."
+        type: string
+        required: false
+        default: ""
   workflow_dispatch:
 
 jobs:
@@ -134,12 +144,14 @@ jobs:
           path: build/macos/
           if-no-files-found: error
 
-  release:
+  # Attache les .zip à la Release déjà créée par release-please. Ne s'exécute que lorsque le
+  # workflow est appelé avec un release_tag (donc jamais sur un simple workflow_dispatch de test).
+  attach:
     needs: [export, export-macos]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: inputs.release_tag != ''
     runs-on: ubuntu-latest
     permissions:
-      contents: write                                    # pour créer la release
+      contents: write                                    # pour éditer la release
     steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v7
@@ -152,9 +164,7 @@ jobs:
           for d in */; do (cd "$d" && zip -qr "../${d%/}.zip" .); done
           ls -la
 
-      - name: Publish the release
-        uses: softprops/action-gh-release@v3
-        with:
-          files: dist/*.zip
-          generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}   # v*-beta / -rc -> pré-release
+      - name: Attach the zips to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.release_tag }}" dist/*.zip --clobber -R "${{ github.repository }}"

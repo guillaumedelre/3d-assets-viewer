@@ -4,6 +4,8 @@ Un visualiseur d'assets 3D façon **explorateur Windows**, fait avec **Godot 4.7
 n'importe quel dossier du disque, on navigue dans l'arborescence, et on prévisualise les modèles 3D
 en temps réel — miniatures « brûlées » dans la grille et aperçu 3D orbital à droite.
 
+![Aperçu de 3D Assets Viewer](screenshot.png)
+
 ## ✨ Fonctionnalités
 
 - **Navigation type explorateur** : arbre de dossiers à gauche (Accueil + lecteurs), grille de fichiers
@@ -51,13 +53,30 @@ pwsh tests/run.ps1
 La CI ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) exécute la suite à chaque push/PR
 sur `main`. Voir [`tests/README.md`](tests/README.md).
 
-## 📦 Builds
+## 📦 Builds & versioning automatique
 
-[`.github/workflows/build.yml`](.github/workflows/build.yml) exporte l'application pour **Linux**,
-**Windows** (cross-export depuis Ubuntu) et **macOS** (runner natif), en Godot 4.7 headless.
+Le versioning suit les [**Conventional Commits**](https://www.conventionalcommits.org/) : **on ne
+choisit jamais le numéro de version** — la pipeline le calcule à partir des messages de commit
+(`fix:` → *patch*, `feat:` → *minor*, `feat!:`/`BREAKING CHANGE:` → *major*). Règle détaillée :
+[`.claude/rules/conventional-commits.md`](.claude/rules/conventional-commits.md).
 
-- Déclenchement manuel : onglet **Actions → build → Run workflow**.
-- Sur un tag `v*` (ex. `v1.0.0`) : une **GitHub Release** est créée avec les `.zip` des trois plateformes.
+Flux ([`.github/workflows/release.yml`](.github/workflows/release.yml)) :
+
+1. À chaque push sur `main`, **release-please** ouvre/actualise une **Release PR** qui contient le
+   prochain numéro SemVer et le `CHANGELOG.md` générés depuis les commits.
+2. Quand tu **fusionnes cette Release PR**, le tag `vX.Y.Z` et la **GitHub Release** sont créés.
+3. [`build.yml`](.github/workflows/build.yml) (réutilisable) exporte alors **Linux**, **Windows**
+   (cross-export depuis Ubuntu) et **macOS** (runner natif) en Godot 4.7 headless, et **attache les
+   `.zip`** des trois plateformes à la Release.
+
+> **Première version.** Le dépôt démarre à `0.0.0` : le premier `feat:` publiera `0.1.0`. Pour
+> sortir directement en `1.0.0`, ajoute un footer `Release-As: 1.0.0` à un commit.
+
+**Prérequis (une seule fois)** : *Settings → Actions → General →* activer **« Allow GitHub Actions to
+create and approve pull requests »** (sinon release-please ne peut pas ouvrir la Release PR).
+
+Pour un build de test sans publier : onglet **Actions → build → Run workflow** (produit seulement les
+artifacts).
 
 ## 🛠️ Prérequis
 
