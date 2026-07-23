@@ -1,0 +1,18 @@
+# Godot 4 — cache d'import (régénéré à l'ouverture du projet)
+.godot/
+
+# Sorties de build et rapports de tests
+/build/
+/reports/
+/dist/
+
+# GdUnit4 — binaire Godot téléchargé par la CI
+/godot/
+
+# Éditeur / outils locaux
+.lh/
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db

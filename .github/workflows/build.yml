@@ -1,0 +1,160 @@
+name: build
+
+# Exporte l'application (Godot 4.7 headless) pour Linux / Windows (cross-export depuis Ubuntu)
+# et macOS (runner natif). Chaque plateforme est uploadée en artifact ; sur un tag v*, un GitHub
+# Release est créé avec les .zip. Lourd (~1 Go de templates) -> déclenché à la demande ou sur tag.
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { preset: "Linux",           out_dir: "build/linux",   artifact: "3d-assets-viewer-linux" }
+          - { preset: "Windows Desktop", out_dir: "build/windows", artifact: "3d-assets-viewer-windows" }
+    env:
+      GODOT_VERSION: "4.7-stable"
+      GODOT_TV: "4.7.stable"
+      GODOT_BIN: ${{ github.workspace }}/godot/godot
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Godot + export templates
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            godot
+            ~/.local/share/godot/export_templates
+          key: godot-export-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot + export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}"
+          mkdir -p godot
+          curl -fsSL "$base/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o godot.zip
+          unzip -q godot.zip -d godot
+          mv "godot/Godot_v${GODOT_VERSION}_linux.x86_64" godot/godot
+          chmod +x godot/godot
+          curl -fsSL "$base/Godot_v${GODOT_VERSION}_export_templates.tpz" -o templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/${GODOT_TV}"
+          unzip -q templates.tpz -d tpz
+          mv tpz/templates/* "$HOME/.local/share/godot/export_templates/${GODOT_TV}/"
+
+      # Importe d'abord : enregistre les class_name et importe les assets dans .godot/ avant l'export.
+      - name: Import project
+        run: "$GODOT_BIN --headless --editor --quit --path ."
+
+      # Godot 4.7 headless PLANTE parfois au teardown APRÈS un export réussi : on ignore le code de
+      # sortie et on vérifie plutôt que des fichiers ont bien été produits.
+      - name: Export ${{ matrix.preset }}
+        run: |
+          mkdir -p "${{ matrix.out_dir }}"
+          "$GODOT_BIN" --headless --export-release "${{ matrix.preset }}" || true
+          if [ -z "$(ls -A '${{ matrix.out_dir }}')" ]; then
+            echo "::error::Export produced no files for '${{ matrix.preset }}'"
+            exit 1
+          fi
+          ls -la "${{ matrix.out_dir }}"
+
+      - name: Upload ${{ matrix.artifact }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.out_dir }}/
+          if-no-files-found: error
+
+  # macOS sur runner NATIF : le pack officiel ne fournit que le template universel macos.zip (ETC2 ASTC),
+  # qui ne se cross-exporte pas depuis Linux headless. Best-effort (continue-on-error) : un souci macOS
+  # ne doit jamais bloquer la publication Windows/Linux.
+  export-macos:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    env:
+      GODOT_VERSION: "4.7-stable"
+      GODOT_TV: "4.7.stable"
+      GODOT_BIN: ${{ github.workspace }}/Godot.app/Contents/MacOS/Godot
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Godot + export templates (macOS)
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            Godot.app
+            ~/Library/Application Support/Godot/export_templates
+          key: godot-macos-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot + export templates (macOS)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}"
+          curl -fsSL "$base/Godot_v${GODOT_VERSION}_macos.universal.zip" -o godot.zip
+          unzip -q godot.zip                       # extrait Godot.app
+          xattr -cr Godot.app || true              # retire une éventuelle quarantaine Gatekeeper
+          chmod +x "$GODOT_BIN"
+          curl -fsSL "$base/Godot_v${GODOT_VERSION}_export_templates.tpz" -o templates.tpz
+          mkdir -p "$HOME/Library/Application Support/Godot/export_templates/${GODOT_TV}"
+          unzip -q templates.tpz -d tpz
+          mv tpz/templates/* "$HOME/Library/Application Support/Godot/export_templates/${GODOT_TV}/"
+
+      # L'export macOS universel nécessite ETC2 ASTC : on l'active dans CE checkout seulement
+      # ([rendering] est la dernière section, la clé ajoutée y atterrit).
+      - name: Enable ETC2 ASTC for the macOS export
+        run: echo 'textures/vram_compression/import_etc2_astc=true' >> project.godot
+
+      - name: Import project
+        run: '"$GODOT_BIN" --headless --editor --quit --path .'
+
+      - name: Export macOS
+        run: |
+          mkdir -p build/macos
+          "$GODOT_BIN" --headless --export-release "macOS" || true
+          if [ -z "$(ls -A build/macos)" ]; then
+            echo "::error::macOS export produced no files"
+            exit 1
+          fi
+          ls -la build/macos
+
+      - name: Upload 3d-assets-viewer-macos
+        uses: actions/upload-artifact@v7
+        with:
+          name: 3d-assets-viewer-macos
+          path: build/macos/
+          if-no-files-found: error
+
+  release:
+    needs: [export, export-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write                                    # pour créer la release
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: dist
+
+      - name: Zip each platform
+        run: |
+          cd dist
+          for d in */; do (cd "$d" && zip -qr "../${d%/}.zip" .); done
+          ls -la
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}   # v*-beta / -rc -> pré-release

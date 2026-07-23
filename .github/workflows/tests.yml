@@ -1,0 +1,79 @@
+name: tests
+
+# Exécute la suite GdUnit4 en headless (Godot 4.7) et conserve le rapport en artifact.
+# Léger (télécharge seulement le binaire Godot, pas les templates d'export).
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write        # pour le check du rapport JUnit
+  pull-requests: write
+
+jobs:
+  gdunit4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GODOT_VERSION: "4.7-stable"
+      GODOT_BIN: ${{ github.workspace }}/godot/godot
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache the Godot binary
+        id: cache-godot
+        uses: actions/cache@v6
+        with:
+          path: godot
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p godot
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          curl -fsSL "$url" -o godot.zip
+          unzip -q godot.zip -d godot
+          mv "godot/Godot_v${GODOT_VERSION}_linux.x86_64" godot/godot
+          chmod +x godot/godot
+
+      # Premier boot en --editor : importe les assets ET enregistre les class_name (ModelLoader,
+      # GdUnit4…) dans .godot/. Sans ça les suites échouent avec "Identifier not found".
+      - name: Import the project
+        run: "$GODOT_BIN --headless --editor --quit --path ."
+
+      # GdUnitCmdTool lance toute la suite en une session. Détails des options :
+      #  --remote-debug tcp://127.0.0.1:0 : port jamais lié -> le débogueur ne peut pas bloquer la CI.
+      #  -c : va au bout (ne s'arrête pas au 1er échec).  -rc 1 : garde seulement le dernier rapport.
+      # Godot headless peut planter au teardown APRÈS un run vert : on lit le verdict "Exit code:" de
+      # GdUnit plutôt que le code de sortie du process.
+      - name: Run GdUnit4
+        run: |
+          out=$("$GODOT_BIN" --headless --path . -s -d --remote-debug tcp://127.0.0.1:0 \
+            res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -c -rc 1 \
+            -rd res://reports/all -a res://tests 2>&1)
+          echo "$out"
+          code=$(echo "$out" | sed 's/\x1b\[[0-9;]*m//g' | grep -oE 'Exit code: [0-9]+' | tail -1 | grep -oE '[0-9]+')
+          echo "::notice::GdUnit exit code: ${code:-<none>}"
+          test "${code:-1}" = "0"
+
+      - name: Upload the test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gdunit4-report
+          path: reports/all/
+          if-no-files-found: warn
+
+      - name: Publish JUnit results
+        if: always()
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: reports/all/report_1/results.xml
+          check_name: GdUnit4
+          fail_on_failure: false   # l'étape "Run GdUnit4" fait déjà échouer le job ; ceci ne fait qu'annoter
