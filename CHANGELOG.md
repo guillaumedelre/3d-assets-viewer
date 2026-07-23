@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.2](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.1...v1.0.2) (2026-07-23)
+
+
+### 📝 Documentation
+
+* documente le workflow branche -&gt; PR -&gt; squash merge dans CLAUDE.md ([302ce7a](https://github.com/guillaumedelre/3d-assets-viewer/commit/302ce7a7976aa84614b486ef5e423b538c1d2cac))
+* etoffe CLAUDE.md en guide projet (archi, commandes, pieges, releases) ([8eb4ed0](https://github.com/guillaumedelre/3d-assets-viewer/commit/8eb4ed0cf2b742813255e37d15778d48d6d5f90e))
+* README reflète la protection de main (ruleset) ([#4](https://github.com/guillaumedelre/3d-assets-viewer/issues/4)) ([5240783](https://github.com/guillaumedelre/3d-assets-viewer/commit/524078383cf3d70e477a589fadf3a8d5e13a3191))
+
 ## [1.0.1](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.0...v1.0.1) (2026-07-23)
 
 
