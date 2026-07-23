@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.2...v1.0.3) (2026-07-23)
+
+
+### 🤖 Intégration continue
+
+* auto-merge de la Release PR (publication automatique) ([#5](https://github.com/guillaumedelre/3d-assets-viewer/issues/5)) ([4f9609a](https://github.com/guillaumedelre/3d-assets-viewer/commit/4f9609a87216e8e1d68cba9ce52e2af1906b0949))
+
 ## [1.0.2](https://github.com/guillaumedelre/3d-assets-viewer/compare/v1.0.1...v1.0.2) (2026-07-23)
 
 
